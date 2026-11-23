@@ -56,6 +56,24 @@ target_include_directories(oaknut INTERFACE
 )
 target_compile_features(oaknut INTERFACE cxx_std_20)
 
+option(OAKNUT_BUILD_MODULE "Build the C++20 module" OFF)
+if (OAKNUT_BUILD_MODULE)
+    if (CMAKE_VERSION VERSION_LESS 3.28)
+        message(FATAL_ERROR "OAKNUT_BUILD_MODULE requires CMake 3.28 or newer")
+    endif()
+
+    add_library(oaknut_module STATIC)
+    add_library(merry::oaknut_module ALIAS oaknut_module)
+
+    target_link_libraries(oaknut_module PUBLIC merry::oaknut)
+
+    target_sources(oaknut_module PUBLIC
+        FILE_SET CXX_MODULES
+        BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src"
+        FILES src/oaknut.cppm
+    )
+endif()
+
 # Tests
 if (MASTER_PROJECT)
     include(CTest)
@@ -115,9 +133,17 @@ endif()
 include(CMakePackageConfigHelpers)
 
 install(TARGETS oaknut EXPORT oaknutTargets)
+if (OAKNUT_BUILD_MODULE)
+    install(TARGETS oaknut_module EXPORT oaknutTargets
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        FILE_SET CXX_MODULES DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/oaknut/src"
+    )
+    set(oaknut_module_export_args CXX_MODULES_DIRECTORY cxx-modules)
+endif()
 install(EXPORT oaknutTargets
     NAMESPACE merry::
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/oaknut"
+    ${oaknut_module_export_args}
 )
 
 configure_package_config_file("${CMAKE_CURRENT_SOURCE_DIR}/oaknutConfig.cmake.in"

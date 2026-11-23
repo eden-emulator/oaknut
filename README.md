@@ -108,6 +108,12 @@ int main()
 }
 ```
 
+### C++20 module
+
+Oaknut supports C++20 modules via `import oaknut;`. Module support is optional and can be enabled with `OAKNUT_BUILD_MODULE=ON` in CMake.
+
+Requires CMake 3.28+ and a compiler with C++20 module support. The existing header-only interface remains unchanged.
+
 ## Headers
 
 | Header | Compiles on non-ARM64 | Contents |
